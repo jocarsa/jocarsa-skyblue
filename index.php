@@ -10,6 +10,11 @@
 		$datos = json_decode($json, true);
 		$templateUrl = 'https://jocarsa.github.io/htmlcssjs/pagina/pagina.html';
 		echo renderTemplate($templateUrl, $datos);	
+	}else if(isset($_GET['categoria'])){
+		$json = file_get_contents('json/'.$_GET['pagina'].'.json');
+		$datos = json_decode($json, true);
+		$templateUrl = 'https://jocarsa.github.io/htmlcssjs/rejilla/rejilla.html';
+		echo renderTemplate($templateUrl, $datos);	
 	}else{
 		$json = file_get_contents('json/home.json');
 		$datos = json_decode($json, true);
