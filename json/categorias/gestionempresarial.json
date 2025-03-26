@@ -1,0 +1,31 @@
+{
+    "Categoría": "Gestión empresarial",
+    "Nombre del producto 1": "Jocarsa Teal",
+    "Descripción del producto 1": "Soluciones completas para la gestión empresarial y la productividad",
+    "Logo del producto 1": "https://static.jocarsa.com/logos/teal.png",
+    "Imagen producto 1": "https://static.jocarsa.com/capturas/teal.png",
+    "Enlace 1 producto 1": "https://jocarsa.com/teal",
+    "Acción 1 producto 1": "Descubre más",
+    
+    "Nombre del producto 2": "Jocarsa Ghostwhite",
+    "Descripción del producto 2": "Plataforma de análisis de datos y visualización en tiempo real para sitios web",
+    "Logo producto 2": "https://static.jocarsa.com/logos/ghostwhite.png",
+    "Imagen del producto 2": "https://static.jocarsa.com/capturas/ghostwhite.png",
+    "Enlace 1 producto 2": "https://jocarsa.com/ghostwhite",
+    "Acción 1 producto 2": "Visualiza en vivo",
+    
+    "Nombre del producto 3": "Jocarsa Darkolivegreen",
+    "Descripción del producto 3": "Cliente de correo electrónico completo con gestión de contactos y sincronización",
+    "Logo producto 3": "https://static.jocarsa.com/logos/darkolivegreen.png",
+    "Imagen del producto 3": "https://static.jocarsa.com/capturas/darkolivegreen.png",
+    "Enlace 1 producto 3": "https://jocarsa.com/darkolivegreen",
+    "Acción 1 producto 3": "Ver cliente de correo",
+    
+    "Nombre del producto 4": "Jocarsa Firebrick",
+    "Descripción del producto 4": "Sistema avanzado para la administración de proyectos colaborativos",
+    "Logo producto 4": "https://static.jocarsa.com/logos/firebrick.png",
+    "Imagen del producto 4": "https://static.jocarsa.com/capturas/firebrick.png",
+    "Enlace 1 producto 4": "https://jocarsa.com/firebrick",
+    "Acción 1 producto 4": "Gestionar proyectos"
+}
+

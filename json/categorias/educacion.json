@@ -1,0 +1,24 @@
+{
+    "Categoría": "Educación",
+    "Nombre del producto 1": "Jocarsa Indigo",
+    "Descripción del producto 1": "Sistema de gestión académica para el seguimiento y evaluación",
+    "Logo del producto 1": "https://static.jocarsa.com/logos/indigo.png",
+    "Imagen producto 1": "https://static.jocarsa.com/capturas/indigo.png",
+    "Enlace 1 producto 1": "https://jocarsa.com/indigo",
+    "Acción 1 producto 1": "Ver detalles",
+    
+    "Nombre del producto 2": "Jocarsa Purple",
+    "Descripción del producto 2": "Sistema integral de gestión educativa con asignaturas y clases",
+    "Logo del producto 2": "https://static.jocarsa.com/logos/purple.png",
+    "Imagen producto 2": "https://static.jocarsa.com/capturas/purple.png",
+    "Enlace 1 producto 2": "https://jocarsa.com/purple",
+    "Acción 1 producto 2": "Gestionar asignaturas",
+    
+    "Nombre del producto 3": "Jocarsa Lightgray",
+    "Descripción del producto 3": "Plataforma de gestión de cursos educativos con recursos multimedia",
+    "Logo del producto 3": "https://static.jocarsa.com/logos/lightgray.png",
+    "Imagen producto 3": "https://static.jocarsa.com/capturas/lightgray.png",
+    "Enlace 1 producto 3": "https://jocarsa.com/lightgray",
+    "Acción 1 producto 3": "Ver cursos"
+}
+
