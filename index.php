@@ -36,3 +36,4 @@
 		echo renderTemplate($templateUrl, $datos);
 
 ?>
+<script src="https://ghostwhite.jocarsa.com/analytics.js?user=jocarsa.com"></script>
