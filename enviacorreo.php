@@ -26,6 +26,10 @@ else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     }
 }
 
+// Add referrer URL to form data
+$referrer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'Direct access or referrer not set';
+$formData[] = ["Referrer URL", $referrer];
+
 // Generate HTML table with CSS
 $message = "<html><body>";
 $message .= "<h1>Form Data Submission</h1>";
