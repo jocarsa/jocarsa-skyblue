@@ -31,6 +31,17 @@ if (isset($_GET['producto'])) {
     $datos = json_decode($json, true);
     $templateUrl = 'https://jocarsa.github.io/htmlcssjs/pagina2/pagina2.html';
     echo $engine->render($templateUrl, $datos);
+}elseif (isset($_GET['contacto'])) {
+    $templateUrl = 'https://jocarsa.github.io/htmlcssjs/contacto2/contacto.html';
+    $attributes = [
+        'form' => [
+            'method' => 'POST',
+            'action' => 'enviacorreo.php'
+        ]
+    ];
+
+    // Render the product template with the specified attributes
+    echo $engine->render($templateUrl, [], $attributes);
 } elseif (isset($_GET['categoria'])) {
     $json = file_get_contents('json/categorias/' . $_GET['categoria'] . '.json');
     $datos = json_decode($json, true);

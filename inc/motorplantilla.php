@@ -27,6 +27,11 @@ class TemplateEngine {
         return $rendered;
     }
 
+    // New method: renderTemplate accepts only the template URL.
+    public function renderTemplate($templateUrl) {
+        return $this->render($templateUrl, []);
+    }
+
     private function processTemplateBlocks($template, $data) {
         return preg_replace_callback(
             '/<template\s+id="(\w+)"\s*>(.*?)<\/template>/s',
