@@ -30,7 +30,7 @@ else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 $referrer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'Direct access or referrer not set';
 $formData[] = ["Referrer URL", $referrer];
 
-// Generate HTML table with CSS
+// Generate HTML table with CSS for email body
 $message = "<html><body>";
 $message .= "<h1>Form Data Submission</h1>";
 $message .= "<table style='border-collapse: collapse; width: 100%;'>";
@@ -54,117 +54,125 @@ $message .= "<style>
 </style>";
 $message .= "</body></html>";
 
-// Headers
+// Headers for email
 $headers = "From: info@jocarsa.com\r\n";
 $headers .= "MIME-Version: 1.0\r\n";
 $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
 
-// Connect to the SMTP server over SSL
-$connection = fsockopen($smtpServer, $smtpPort, $errno, $errstr, 30);
-
-if (!$connection) {
-    echo "Failed to connect to the SMTP server: $errstr ($errno)\n";
-    exit;
+// Check if HTTP_REFERER contains "jocarsa.com"
+$shouldSendEmail = false;
+if (isset($_SERVER['HTTP_REFERER']) && stripos($_SERVER['HTTP_REFERER'], 'jocarsa.com') !== false) {
+    $shouldSendEmail = true;
 }
 
-// Read the server response
-$response = '';
-while ($line = fgets($connection, 1024)) {
-    $response .= $line;
-    if (substr($line, 3, 1) == ' ') {
-        break;
+if ($shouldSendEmail) {
+    // Connect to the SMTP server over SSL
+    $connection = fsockopen($smtpServer, $smtpPort, $errno, $errstr, 30);
+
+    if (!$connection) {
+        echo "Failed to connect to the SMTP server: $errstr ($errno)\n";
+        exit;
     }
-}
-if (substr($response, 0, 3) != "220") {
-    echo "Unexpected server response: $response\n";
-    exit;
-}
 
-// Send EHLO command
-fputs($connection, "EHLO localhost\r\n");
-$response = '';
-while ($line = fgets($connection, 1024)) {
-    $response .= $line;
-    if (substr($line, 3, 1) == ' ') {
-        break;
+    // Read the server response
+    $response = '';
+    while ($line = fgets($connection, 1024)) {
+        $response .= $line;
+        if (substr($line, 3, 1) == ' ') {
+            break;
+        }
     }
-}
-if (substr($response, 0, 3) != "250") {
-    echo "Unexpected server response: $response\n";
-    exit;
+    if (substr($response, 0, 3) != "220") {
+        echo "Unexpected server response: $response\n";
+        exit;
+    }
+
+    // Send EHLO command
+    fputs($connection, "EHLO localhost\r\n");
+    $response = '';
+    while ($line = fgets($connection, 1024)) {
+        $response .= $line;
+        if (substr($line, 3, 1) == ' ') {
+            break;
+        }
+    }
+    if (substr($response, 0, 3) != "250") {
+        echo "Unexpected server response: $response\n";
+        exit;
+    }
+
+    // Authenticate
+    fputs($connection, "AUTH LOGIN\r\n");
+    $response = fgets($connection, 1024);
+    if (substr($response, 0, 3) != "334") {
+        echo "Unexpected server response: $response\n";
+        exit;
+    }
+
+    // Send username
+    fputs($connection, base64_encode($smtpUser) . "\r\n");
+    $response = fgets($connection, 1024);
+    if (substr($response, 0, 3) != "334") {
+        echo "Unexpected server response: $response\n";
+        exit;
+    }
+
+    // Send password
+    fputs($connection, base64_encode($smtpPass) . "\r\n");
+    $response = fgets($connection, 1024);
+    if (substr($response, 0, 3) != "235") {
+        echo "Unexpected server response: $response\n";
+        exit;
+    }
+
+    // Send MAIL FROM command
+    fputs($connection, "MAIL FROM: <$smtpUser>\r\n");
+    $response = fgets($connection, 1024);
+    if (substr($response, 0, 3) != "250") {
+        echo "Unexpected server response: $response\n";
+        exit;
+    }
+
+    // Send RCPT TO command
+    fputs($connection, "RCPT TO: <$to>\r\n");
+    $response = fgets($connection, 1024);
+    if (substr($response, 0, 3) != "250") {
+        echo "Unexpected server response: $response\n";
+        exit;
+    }
+
+    // Send DATA command
+    fputs($connection, "DATA\r\n");
+    $response = fgets($connection, 1024);
+    if (substr($response, 0, 3) != "354") {
+        echo "Unexpected server response: $response\n";
+        exit;
+    }
+
+    // Send email headers and body
+    fputs($connection, "Subject: $subject\r\n");
+    fputs($connection, "$headers\r\n");
+    fputs($connection, "$message\r\n");
+    fputs($connection, ".\r\n");
+    $response = fgets($connection, 1024);
+    if (substr($response, 0, 3) != "250") {
+        echo "Unexpected server response: $response\n";
+        exit;
+    }
+
+    // Send QUIT command
+    fputs($connection, "QUIT\r\n");
+    $response = fgets($connection, 1024);
+    if (substr($response, 0, 3) != "221") {
+        echo "Unexpected server response: $response\n";
+        exit;
+    }
+
+    // Close the connection
+    fclose($connection);
 }
 
-// Authenticate
-fputs($connection, "AUTH LOGIN\r\n");
-$response = fgets($connection, 1024);
-if (substr($response, 0, 3) != "334") {
-    echo "Unexpected server response: $response\n";
-    exit;
-}
-
-// Send username
-fputs($connection, base64_encode($smtpUser) . "\r\n");
-$response = fgets($connection, 1024);
-if (substr($response, 0, 3) != "334") {
-    echo "Unexpected server response: $response\n";
-    exit;
-}
-
-// Send password
-fputs($connection, base64_encode($smtpPass) . "\r\n");
-$response = fgets($connection, 1024);
-if (substr($response, 0, 3) != "235") {
-    echo "Unexpected server response: $response\n";
-    exit;
-}
-
-// Send MAIL FROM command
-fputs($connection, "MAIL FROM: <$smtpUser>\r\n");
-$response = fgets($connection, 1024);
-if (substr($response, 0, 3) != "250") {
-    echo "Unexpected server response: $response\n";
-    exit;
-}
-
-// Send RCPT TO command
-fputs($connection, "RCPT TO: <$to>\r\n");
-$response = fgets($connection, 1024);
-if (substr($response, 0, 3) != "250") {
-    echo "Unexpected server response: $response\n";
-    exit;
-}
-
-// Send DATA command
-fputs($connection, "DATA\r\n");
-$response = fgets($connection, 1024);
-if (substr($response, 0, 3) != "354") {
-    echo "Unexpected server response: $response\n";
-    exit;
-}
-
-// Send email headers and body
-fputs($connection, "Subject: $subject\r\n");
-fputs($connection, "$headers\r\n");
-fputs($connection, "$message\r\n");
-fputs($connection, ".\r\n");
-$response = fgets($connection, 1024);
-if (substr($response, 0, 3) != "250") {
-    echo "Unexpected server response: $response\n";
-    exit;
-}
-
-// Send QUIT command
-fputs($connection, "QUIT\r\n");
-$response = fgets($connection, 1024);
-if (substr($response, 0, 3) != "221") {
-    echo "Unexpected server response: $response\n";
-    exit;
-}
-
-// Close the connection
-fclose($connection);
-
-// Display success message
+// Display success message regardless of whether the email was sent
 echo "<!DOCTYPE html>";
 echo "<html lang='es'>";
 echo "<head>";
