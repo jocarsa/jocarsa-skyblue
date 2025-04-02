@@ -166,6 +166,16 @@
   "Acción 2 producto 19": "Más información",
   "Enlace 2 producto 19": "?producto=jocarsa | crimson",
   "Logo producto 19":"https://static.jocarsa.com/logos/crimson.png",
+  
+    "Imagen producto 19": "https://static.jocarsa.com/capturas/darksalmon.png",
+  "Título de producto 19": "jocarsa | darksalmon",
+  "Subtítulo de producto 19": "Software de fichaje laboral",
+  "Acción 1 producto 19": "Comprar ahora",
+  "Enlace 1 producto 19": "/comprar/producto2",
+  "Acción 2 producto 19": "Más información",
+  "Enlace 2 producto 19": "?producto=jocarsa | darksalmon",
+  "Logo producto 19":"https://static.jocarsa.com/logos/darksalmon.png",
+  
   "Texto informativo": "<h1 style='font-size: 2.5rem; margin-bottom: 20px;'>Bienvenido a Jocarsa</h1>\n<p style='font-size: 1.2rem; margin-bottom: 30px; max-width: 800px; margin-left: auto; margin-right: auto;'>En Jocarsa nos especializamos en ofrecer soluciones de software de gestión empresarial que impulsan la eficiencia y el crecimiento de tu negocio. Con nuestras herramientas innovadoras, desde sistemas CRM y ERP hasta utilidades de gestión de servidores y productividad, te ayudamos a optimizar cada aspecto de tu empresa. Nuestro enfoque SaaS garantiza accesibilidad, seguridad y escalabilidad, todo respaldado por un soporte técnico profesional y cercano.</p>\n<p style='font-size: 1.2rem; margin-bottom: 30px; max-width: 800px; margin-left: auto; margin-right: auto;'>Confía en nosotros para transformar la gestión de tu empresa. Nos apasiona ayudarte a tomar decisiones basadas en datos en tiempo real gracias a nuestra plataforma de Business Intelligence (BI) y nuestras herramientas de análisis avanzadas.</p>\n<a href='/contacto' style='display: inline-block; padding: 15px 30px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px;'>¡Contáctanos y da el salto a la gestión inteligente!</a>",
   "Elemento pié de página 1": "Acerca de nosotros",
   "Enlace pié de página 1": "/acerca-de",
