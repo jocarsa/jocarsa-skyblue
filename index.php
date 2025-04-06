@@ -20,7 +20,7 @@ if (isset($_GET['producto'])) {
     $attributes = [
         'form' => [
             'method' => 'POST',
-            'action' => 'enviacorreo.php'
+            'action' => 'https://email.jocarsa.com/enviacorreo.php'
         ]
     ];
 
@@ -36,7 +36,7 @@ if (isset($_GET['producto'])) {
     $attributes = [
         'form' => [
             'method' => 'POST',
-            'action' => 'enviacorreo.php'
+            'action' => 'https://email.jocarsa.com/enviacorreo.php'
         ]
     ];
 
