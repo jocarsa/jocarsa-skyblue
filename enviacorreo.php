@@ -12,20 +12,36 @@ $dataForJson = []; // For saving as JSON
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     foreach ($_POST as $key => $value) {
-        $formData[]             = [$key, $value];
+        $formData[]        = [$key, $value];
         $dataForJson[$key] = $value;
     }
 } elseif ($_SERVER['REQUEST_METHOD'] === 'GET') {
     foreach ($_GET as $key => $value) {
-        $formData[]             = [$key, $value];
+        $formData[]        = [$key, $value];
         $dataForJson[$key] = $value;
     }
 }
 
 // Add referrer URL to data
 $referrer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'Direct access or referrer not set';
-$formData[]              = ["Referrer URL", $referrer];
+$formData[]                  = ["Referrer URL", $referrer];
 $dataForJson['Referrer URL'] = $referrer;
+
+// ---- Additional Visitor Data ----
+// Visitor IP address
+$visitorIP = $_SERVER['REMOTE_ADDR'];
+$formData[]                  = ["Visitor IP", $visitorIP];
+$dataForJson['Visitor IP']   = $visitorIP;
+
+// Visitor User Agent
+$userAgent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'Not provided';
+$formData[]                  = ["Visitor User Agent", $userAgent];
+$dataForJson['Visitor User Agent'] = $userAgent;
+
+// Full date in human readable form
+$submissionDate = date('l, F j, Y g:i:s A');
+$formData[]                  = ["Submission Date", $submissionDate];
+$dataForJson['Submission Date'] = $submissionDate;
 
 // Generate HTML table for email body
 $message  = "<html><body>";
@@ -67,14 +83,14 @@ if (isset($_SERVER['HTTP_REFERER']) && stripos($_SERVER['HTTP_REFERER'], 'jocars
 $isSpam = false;
 $spamFilterFile = 'spamfilter.txt';
 if (file_exists($spamFilterFile)) {
-    // Get each spam keyword as an array entry
+    // Read spam keywords from the file (one per line)
     $spamWords = file($spamFilterFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($spamWords as $spamWord) {
         // Check if any form input contains a spam keyword (case-insensitive)
         foreach ($dataForJson as $value) {
             if (stripos($value, $spamWord) !== false) {
                 $isSpam = true;
-                break 2; // break out if one spam word is found
+                break 2; // Exit if any spam keyword is found
             }
         }
     }
@@ -100,6 +116,7 @@ $targetFolder = $isSpam ? $spamFolder : $incomingFolder;
 file_put_contents($targetFolder . '/' . $filename, $jsonData);
 
 // ----- SMTP EMAIL SENDING -----
+// Only send email if not flagged as spam and if the HTTP referrer is valid
 if (!$isSpam && $shouldSendEmail) {
     // Connect to the SMTP server over SSL
     $connection = fsockopen($smtpServer, $smtpPort, $errno, $errstr, 30);
@@ -204,7 +221,10 @@ if (!$isSpam && $shouldSendEmail) {
     fclose($connection);
 }
 
-// ----- SUCCESS MESSAGE -----
+// ----- SUCCESS MESSAGE with Redirection -----
+// Determine protocol for redirection (HTTP or HTTPS)
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' 
+             || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
 ?>
 <!DOCTYPE html>
 <html lang='es'>
@@ -213,8 +233,22 @@ if (!$isSpam && $shouldSendEmail) {
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <title>Mensaje Enviado</title>
     <style>
-        body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: Arial, sans-serif; background-color: #f7f7f7; }
-        .message-box { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); text-align: center; }
+        body { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+            font-family: Arial, sans-serif; 
+            background-color: #f7f7f7; 
+        }
+        .message-box { 
+            background-color: #fff; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); 
+            text-align: center; 
+        }
         .message-box h1 { color: #4CAF50; }
         .message-box p { color: #555; }
     </style>
@@ -226,7 +260,8 @@ if (!$isSpam && $shouldSendEmail) {
     </div>
     <script>
         setTimeout(function() {
-            window.location.href = 'http://<?php echo $domain; ?>';
+            // Redirect to the main domain root (e.g., https://xxxxx.com)
+            window.location.href = '<?php echo $protocol . $_SERVER['HTTP_HOST']; ?>';
         }, 5000);
     </script>
 </body>
