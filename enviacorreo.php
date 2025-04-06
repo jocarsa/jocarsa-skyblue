@@ -1,14 +1,17 @@
 <?php
-// Include the configuration file for SMTP settings
+// Incluir el archivo de configuración para los ajustes SMTP
 require_once 'config.php';
 
-// Determine domain and subject
-$domain  = $_SERVER['HTTP_HOST'];
-$subject = "Mensaje from $domain";
+// Configurar locale para la fecha en español
+setlocale(LC_TIME, 'es_ES.UTF-8');
 
-// Capture form data from GET or POST
+// Determinar dominio y asunto
+$domain  = $_SERVER['HTTP_HOST'];
+$subject = "Mensaje de $domain";
+
+// Capturar datos del formulario (GET o POST)
 $formData    = [];
-$dataForJson = []; // For saving as JSON
+$dataForJson = []; // Para guardar como JSON
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     foreach ($_POST as $key => $value) {
@@ -22,32 +25,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Add referrer URL to data
-$referrer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'Direct access or referrer not set';
-$formData[]                  = ["Referrer URL", $referrer];
-$dataForJson['Referrer URL'] = $referrer;
+// Agregar la URL de referencia a los datos
+$referrer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'Acceso directo o referencia no establecida';
+$formData[]                    = ["URL de referencia", $referrer];
+$dataForJson['URL de referencia'] = $referrer;
 
-// ---- Additional Visitor Data ----
-// Visitor IP address
+// ---- Datos adicionales del visitante ----
+// IP del visitante
 $visitorIP = $_SERVER['REMOTE_ADDR'];
-$formData[]                  = ["Visitor IP", $visitorIP];
-$dataForJson['Visitor IP']   = $visitorIP;
+$formData[]                    = ["IP del visitante", $visitorIP];
+$dataForJson['IP del visitante']   = $visitorIP;
 
-// Visitor User Agent
-$userAgent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'Not provided';
-$formData[]                  = ["Visitor User Agent", $userAgent];
-$dataForJson['Visitor User Agent'] = $userAgent;
+// Agente de Usuario del visitante
+$userAgent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'No proporcionado';
+$formData[]                    = ["Agente de Usuario", $userAgent];
+$dataForJson['Agente de Usuario'] = $userAgent;
 
-// Full date in human readable form
-$submissionDate = date('l, F j, Y g:i:s A');
-$formData[]                  = ["Submission Date", $submissionDate];
-$dataForJson['Submission Date'] = $submissionDate;
+// Fecha de envío en formato legible en español
+$submissionDate = strftime('%A, %d de %B de %Y %H:%M:%S');
+$formData[]                    = ["Fecha de envío", $submissionDate];
+$dataForJson['Fecha de envío'] = $submissionDate;
 
-// Generate HTML table for email body
+// Generar tabla HTML para el cuerpo del correo
 $message  = "<html><body>";
-$message .= "<h1>Form Data Submission</h1>";
+$message .= "<h1>Envío de datos del formulario</h1>";
 $message .= "<table style='border-collapse: collapse; width: 100%;'>";
-$message .= "<tr style='background-color: #f2f2f2;'><th style='border: 1px solid #ddd; padding: 8px;'>Label</th><th style='border: 1px solid #ddd; padding: 8px;'>Value</th></tr>";
+$message .= "<tr style='background-color: #f2f2f2;'><th style='border: 1px solid #ddd; padding: 8px;'>Etiqueta</th><th style='border: 1px solid #ddd; padding: 8px;'>Valor</th></tr>";
 
 foreach ($formData as $data) {
     $message .= "<tr>";
@@ -67,41 +70,41 @@ $message .= "<style>
 </style>";
 $message .= "</body></html>";
 
-// Set email headers
+// Configurar las cabeceras del correo
 $headers  = "From: $smtpUser\r\n";
 $headers .= "MIME-Version: 1.0\r\n";
 $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
 
-// Determine if the email should be sent based on HTTP referrer
+// Determinar si se debe enviar el correo basándose en el referer HTTP
 $shouldSendEmail = false;
 if (isset($_SERVER['HTTP_REFERER']) && stripos($_SERVER['HTTP_REFERER'], 'jocarsa.com') !== false) {
     $shouldSendEmail = true;
 }
 
-// ----- SPAM FILTERING -----
-// Default to not spam
+// ----- FILTRO DE SPAM -----
+// Por defecto, no es spam
 $isSpam = false;
 $spamFilterFile = 'spamfilter.txt';
 if (file_exists($spamFilterFile)) {
-    // Read spam keywords from the file (one per line)
+    // Leer palabras clave de spam del archivo (una por línea)
     $spamWords = file($spamFilterFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($spamWords as $spamWord) {
-        // Check if any form input contains a spam keyword (case-insensitive)
+        // Comprobar si algún dato del formulario contiene la palabra clave de spam (sin distinguir mayúsculas/minúsculas)
         foreach ($dataForJson as $value) {
             if (stripos($value, $spamWord) !== false) {
                 $isSpam = true;
-                break 2; // Exit if any spam keyword is found
+                break 2; // Salir si se encuentra alguna palabra de spam
             }
         }
     }
 }
 
-// ----- FOLDER STRUCTURE & JSON STORAGE -----
+// ----- ESTRUCTURA DE CARPETAS Y ALMACENAMIENTO JSON -----
 $mailFolder     = 'mail';
 $incomingFolder = $mailFolder . '/incoming';
 $spamFolder     = $mailFolder . '/spam';
 
-// Create directories if they do not exist
+// Crear directorios si no existen
 if (!is_dir($incomingFolder)) {
     mkdir($incomingFolder, 0777, true);
 }
@@ -109,23 +112,23 @@ if (!is_dir($spamFolder)) {
     mkdir($spamFolder, 0777, true);
 }
 
-// Save the form data as JSON
+// Guardar los datos del formulario como JSON
 $jsonData     = json_encode($dataForJson, JSON_PRETTY_PRINT);
 $filename     = uniqid('mail_', true) . '.json';
 $targetFolder = $isSpam ? $spamFolder : $incomingFolder;
 file_put_contents($targetFolder . '/' . $filename, $jsonData);
 
-// ----- SMTP EMAIL SENDING -----
-// Only send email if not flagged as spam and if the HTTP referrer is valid
+// ----- ENVÍO DEL CORREO ELECTRÓNICO VIA SMTP -----
+// Solo enviar correo si no se marca como spam y el referer HTTP es válido
 if (!$isSpam && $shouldSendEmail) {
-    // Connect to the SMTP server over SSL
+    // Conectar al servidor SMTP vía SSL
     $connection = fsockopen($smtpServer, $smtpPort, $errno, $errstr, 30);
     if (!$connection) {
-        echo "Failed to connect to the SMTP server: $errstr ($errno)\n";
+        echo "Fallo al conectar con el servidor SMTP: $errstr ($errno)\n";
         exit;
     }
 
-    // Read initial server response
+    // Leer la respuesta inicial del servidor
     $response = '';
     while ($line = fgets($connection, 1024)) {
         $response .= $line;
@@ -134,11 +137,11 @@ if (!$isSpam && $shouldSendEmail) {
         }
     }
     if (substr($response, 0, 3) != "220") {
-        echo "Unexpected server response: $response\n";
+        echo "Respuesta inesperada del servidor: $response\n";
         exit;
     }
 
-    // Send EHLO command
+    // Enviar comando EHLO
     fputs($connection, "EHLO localhost\r\n");
     $response = '';
     while ($line = fgets($connection, 1024)) {
@@ -148,81 +151,81 @@ if (!$isSpam && $shouldSendEmail) {
         }
     }
     if (substr($response, 0, 3) != "250") {
-        echo "Unexpected server response: $response\n";
+        echo "Respuesta inesperada del servidor: $response\n";
         exit;
     }
 
-    // Authenticate using AUTH LOGIN
+    // Autenticación con AUTH LOGIN
     fputs($connection, "AUTH LOGIN\r\n");
     $response = fgets($connection, 1024);
     if (substr($response, 0, 3) != "334") {
-        echo "Unexpected server response: $response\n";
+        echo "Respuesta inesperada del servidor: $response\n";
         exit;
     }
 
-    // Send username (base64-encoded)
+    // Enviar usuario (codificado en base64)
     fputs($connection, base64_encode($smtpUser) . "\r\n");
     $response = fgets($connection, 1024);
     if (substr($response, 0, 3) != "334") {
-        echo "Unexpected server response: $response\n";
+        echo "Respuesta inesperada del servidor: $response\n";
         exit;
     }
 
-    // Send password (base64-encoded)
+    // Enviar contraseña (codificada en base64)
     fputs($connection, base64_encode($smtpPass) . "\r\n");
     $response = fgets($connection, 1024);
     if (substr($response, 0, 3) != "235") {
-        echo "Unexpected server response: $response\n";
+        echo "Respuesta inesperada del servidor: $response\n";
         exit;
     }
 
-    // MAIL FROM command
+    // Comando MAIL FROM
     fputs($connection, "MAIL FROM: <$smtpUser>\r\n");
     $response = fgets($connection, 1024);
     if (substr($response, 0, 3) != "250") {
-        echo "Unexpected server response: $response\n";
+        echo "Respuesta inesperada del servidor: $response\n";
         exit;
     }
 
-    // RCPT TO command (sending to self in this example)
+    // Comando RCPT TO (enviando a uno mismo en este ejemplo)
     fputs($connection, "RCPT TO: <$smtpUser>\r\n");
     $response = fgets($connection, 1024);
     if (substr($response, 0, 3) != "250") {
-        echo "Unexpected server response: $response\n";
+        echo "Respuesta inesperada del servidor: $response\n";
         exit;
     }
 
-    // DATA command
+    // Comando DATA
     fputs($connection, "DATA\r\n");
     $response = fgets($connection, 1024);
     if (substr($response, 0, 3) != "354") {
-        echo "Unexpected server response: $response\n";
+        echo "Respuesta inesperada del servidor: $response\n";
         exit;
     }
 
-    // Send email headers and message body
+    // Enviar cabeceras y cuerpo del correo
     fputs($connection, "Subject: $subject\r\n");
     fputs($connection, "$headers\r\n");
     fputs($connection, "$message\r\n");
     fputs($connection, ".\r\n");
     $response = fgets($connection, 1024);
     if (substr($response, 0, 3) != "250") {
-        echo "Unexpected server response: $response\n";
+        echo "Respuesta inesperada del servidor: $response\n";
         exit;
     }
 
-    // QUIT command
+    // Comando QUIT
     fputs($connection, "QUIT\r\n");
     $response = fgets($connection, 1024);
     if (substr($response, 0, 3) != "221") {
-        echo "Unexpected server response: $response\n";
+        echo "Respuesta inesperada del servidor: $response\n";
         exit;
     }
     fclose($connection);
 }
 
-// ----- SUCCESS MESSAGE with Redirection -----
-// Determine protocol for redirection (HTTP or HTTPS)
+// ----- MENSAJE DE ÉXITO CON REDIRECCIÓN -----
+// Determinar el protocolo para la redirección (HTTP o HTTPS)
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' 
              || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
 ?>
@@ -260,7 +263,7 @@ $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'
     </div>
     <script>
         setTimeout(function() {
-            // Redirect to the main domain root (e.g., https://xxxxx.com)
+            // Redirigir a la raíz del dominio (por ejemplo, https://xxxxx.com)
             window.location.href = '<?php echo $protocol . $_SERVER['HTTP_HOST']; ?>';
         }, 5000);
     </script>
