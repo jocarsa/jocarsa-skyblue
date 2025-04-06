@@ -27,24 +27,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Agregar la URL de referencia a los datos
 $referrer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'Acceso directo o referencia no establecida';
-$formData[]                    = ["URL de referencia", $referrer];
+$formData[]                     = ["URL de referencia", $referrer];
 $dataForJson['URL de referencia'] = $referrer;
 
 // ---- Datos adicionales del visitante ----
 // IP del visitante
 $visitorIP = $_SERVER['REMOTE_ADDR'];
-$formData[]                    = ["IP del visitante", $visitorIP];
-$dataForJson['IP del visitante']   = $visitorIP;
+$formData[]                     = ["IP del visitante", $visitorIP];
+$dataForJson['IP del visitante'] = $visitorIP;
 
 // Agente de Usuario del visitante
 $userAgent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'No proporcionado';
-$formData[]                    = ["Agente de Usuario", $userAgent];
+$formData[]                     = ["Agente de Usuario", $userAgent];
 $dataForJson['Agente de Usuario'] = $userAgent;
 
 // Fecha de envío en formato legible en español
 $submissionDate = strftime('%A, %d de %B de %Y %H:%M:%S');
-$formData[]                    = ["Fecha de envío", $submissionDate];
-$dataForJson['Fecha de envío'] = $submissionDate;
+$formData[]                     = ["Fecha de envío", $submissionDate];
+$dataForJson['Fecha de envío']  = $submissionDate;
 
 // Generar tabla HTML para el cuerpo del correo
 $message  = "<html><body>";
@@ -95,6 +95,39 @@ if (file_exists($spamFilterFile)) {
                 $isSpam = true;
                 break 2; // Salir si se encuentra alguna palabra de spam
             }
+        }
+    }
+}
+
+// ----- NUEVO FILTRO: VALIDACIÓN DE EMAIL -----
+// Verificar si algún campo es un email y, en ese caso, comprobar su dominio y TLD
+foreach ($dataForJson as $value) {
+    // Verifica si el valor es exactamente un email
+    if (filter_var($value, FILTER_VALIDATE_EMAIL)) {
+        // Obtener el dominio del email
+        $emailDomain = substr(strrchr($value, "@"), 1);
+        // Asegurarse de que el dominio contenga un punto para extraer la TLD
+        if (strpos($emailDomain, ".") === false) {
+            $isSpam = true;
+            break;
+        }
+        // Extraer la TLD (parte después del último punto) y convertir a mayúsculas
+        $tld = strtoupper(substr(strrchr($emailDomain, "."), 1));
+        
+        // Obtener la lista de TLD válidas desde IANA
+        $tldListRaw = file_get_contents("https://data.iana.org/TLD/tlds-alpha-by-domain.txt");
+        if ($tldListRaw !== false) {
+            $tldList = explode("\n", $tldListRaw);
+            $tldList = array_map('trim', $tldList);
+            // Comprobar si la TLD extraída se encuentra en la lista
+            if (!in_array($tld, $tldList)) {
+                $isSpam = true;
+                break;
+            }
+        } else {
+            // Si no se pudo obtener la lista, considerar el email inválido
+            $isSpam = true;
+            break;
         }
     }
 }
